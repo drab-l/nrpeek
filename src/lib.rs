@@ -5,8 +5,7 @@ use std::mem::MaybeUninit;
 #[cfg_attr(target_os = "linux", path = "linux.rs")]
 #[cfg_attr(target_os = "windows", path = "windows.rs")]
 mod os;
-use os::Pid;
-
+pub use os::Pid;
 pub struct Peek {
     pid: Pid,
 }
