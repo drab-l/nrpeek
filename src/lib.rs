@@ -87,6 +87,21 @@ impl Peek {
         }
         Ok(())
     }
+
+    /// Peek data from target process to `Vec<T>`
+    /// # Arguments
+    /// * `pid` - A peek target process ID
+    /// * `addr` - A peek target address
+    /// * `dst` - Destination vector that capacity shall be allocated.
+    pub fn peek_vec2<T>(&self, addr: usize, dst:&mut Vec<T>) -> Result<()> {
+        let size = dst.capacity() * std::mem::size_of::<T>();
+        unsafe {
+            let ptr = dst.as_mut_ptr();
+            peek_buf(&self.hdl, addr, ptr.cast::<u8>(), size)?;
+            dst.set_len(dst.capacity());
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -102,6 +117,14 @@ mod test {
         assert_eq!(src, dst);
         let peek = Peek::new_with_handle(get_current_handle());
         peek.peek_vec(src.as_ptr() as usize, &mut dst).unwrap();
+        assert_eq!(src, dst);
+    }
+    #[test]
+    fn test_peek_vec2() {
+        let peek = Peek::new_with_pid(get_current_id());
+        let src = vec![1,2,3,4,5,6,7,8,9,10,11,12];
+        let mut dst = Vec::<u16>::with_capacity(12);
+        peek.peek_vec2(src.as_ptr() as usize, &mut dst).unwrap();
         assert_eq!(src, dst);
     }
     #[test]
