@@ -27,8 +27,12 @@ pub fn get_current_handle() -> HANDLE {
     unsafe { c::getpid() }
 }
 
-pub fn pid_to_handle(pid: Pid) -> HANDLE {
-    pid as HANDLE
+pub fn get_handle_by_window_name(_: &str) -> Result<HANDLE> {
+    panic!("Not support in Linux");
+}
+
+pub fn pid_to_handle(pid: Pid) -> Result<HANDLE> {
+    Ok(pid as HANDLE)
 }
 
 pub unsafe fn peek_buf(hdl: &HANDLE, addr: usize, dst: *mut u8, size: usize) -> Result<usize> {

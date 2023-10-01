@@ -20,18 +20,22 @@ pub fn get_current_handle() -> HANDLE {
     os::get_current_handle()
 }
 
+pub fn get_handle_by_window_name(name: &str) -> Result<HANDLE> {
+    os::get_handle_by_window_name(name)
+}
+
 unsafe fn peek_buf(hdl: &HANDLE, addr: usize, dst: *mut u8, size: usize) -> Result<usize> {
     os::peek_buf(hdl, addr, dst, size)
 }
 
 impl Peek {
-    pub fn new_with_pid(pid: Pid) -> Self {
-        let hdl = os::pid_to_handle(pid);
-        Peek { hdl }
+    pub fn new_with_pid(pid: Pid) -> Result<Self> {
+        let hdl = os::pid_to_handle(pid)?;
+        Ok(Peek { hdl })
     }
 
-    pub fn new_with_handle(hdl: HANDLE) -> Self {
-        Peek { hdl }
+    pub fn new_with_handle(hdl: HANDLE) -> Result<Self> {
+        Ok(Peek { hdl })
     }
 
     /// Peek specfied type's data from target process
@@ -110,18 +114,18 @@ mod test {
 
     #[test]
     fn test_peek_vec() {
-        let peek = Peek::new_with_pid(get_current_id());
+        let peek = Peek::new_with_pid(get_current_id()).unwrap();
         let src = vec![1,2,3,4,5,6,7,8,9,10,11,12];
         let mut dst = Vec::<u8>::with_capacity(12);
         peek.peek_vec(src.as_ptr() as usize, &mut dst).unwrap();
         assert_eq!(src, dst);
-        let peek = Peek::new_with_handle(get_current_handle());
+        let peek = Peek::new_with_handle(get_current_handle()).unwrap();
         peek.peek_vec(src.as_ptr() as usize, &mut dst).unwrap();
         assert_eq!(src, dst);
     }
     #[test]
     fn test_peek_vec2() {
-        let peek = Peek::new_with_pid(get_current_id());
+        let peek = Peek::new_with_pid(get_current_id()).unwrap();
         let src = vec![1,2,3,4,5,6,7,8,9,10,11,12];
         let mut dst = Vec::<u16>::with_capacity(12);
         peek.peek_vec2(src.as_ptr() as usize, &mut dst).unwrap();
@@ -129,7 +133,7 @@ mod test {
     }
     #[test]
     fn test_peek_until_null() {
-        let peek = Peek::new_with_pid(get_current_id());
+        let peek = Peek::new_with_pid(get_current_id()).unwrap();
         let src = vec![1,2,3,4,5,6,7,8,9,0,11,12];
         let mut dst = peek.peek_until_null(src.as_ptr() as usize).unwrap();
         dst.append(&mut vec![0,11,12]);
@@ -141,7 +145,7 @@ mod test {
         struct Test {
             a: u32, b: u32
         }
-        let peek = Peek::new_with_pid(get_current_id());
+        let peek = Peek::new_with_pid(get_current_id()).unwrap();
         let src = Test{ a: 1, b: 2 };
         let dst = peek.peek_data::<Test>(std::ptr::addr_of!(src) as usize).unwrap();
         assert_eq!(src, dst);
